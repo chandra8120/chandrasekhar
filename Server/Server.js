@@ -25,36 +25,26 @@ app.get("/", (req, res) => {
   res.send("<h2>hello chandra</h2>");
 });
 
-mongoose
-  .connect("mongodb+srv://chandra_8120:chandra@cluster0.k6nq4jt.mongodb.net/?retryWrites=true&w=majority")
+mongoose.connect("mongodb+srv://chandra_8120:chandra@cluster0.k6nq4jt.mongodb.net/?retryWrites=true&w=majority")
+// mongoose.connect("mongodb+srv://chandra_8120:chandra@cluster0.k6nq4jt.mongodb.net/your-database-name?retryWrites=true&w=majority")
+
   .then(() => console.log("DB connected..."))
   .catch((error) => console.log("error displayed", error));
 
 
-app.post("/data", async (req, res) => {
-  
-  try {
-    const {name,username,email}  = req.body;
-    console.log(req.body,"name");
-
-    const exist = await data.findOne({name});
-
-    if(exist){
-    return res.status(400).send('user already reg')
+  app.post('/adduserdata', async (req, res) => {
+    try {
+      const userData = req.body;
+      const newUser = new data(userData);
+      await newUser.save();
+      res.status(200).send('User data successfully added !!!');
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-    const newUser=new data({
-      name,username,email
-    })
-    newUser.save()
-    return res.status(200).send("user data successfully added !!!")
-
-  }
-  catch(err){
-  console.log(err,'display error message..')
-  }
+  });
   
-})
-
+  
 
 //...
 app.get('/getalldata', async (req, res) => {
@@ -66,23 +56,25 @@ app.get('/getalldata', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-//...
-app.delete('/delete/:id', async (req, res) => {
+//...................
+app.delete('/getalldata/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
     const deletedUser = await data.deleteOne({ _id: userId });
 
     if (deletedUser.deletedCount === 1) {
-      res.status(200).json({ message: 'User deleted successfully' });
+      return res.status(200).json({ message: 'User deleted successfully' });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error deleting user:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
 // login authentication ....................................................................
 const User = mongoose.model('User', new mongoose.Schema({
   
@@ -138,5 +130,5 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.listen(3508, () => console.log("server running...."))
+app.listen(3504, () => console.log("server running...."))
 
